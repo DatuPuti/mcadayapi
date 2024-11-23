@@ -1,0 +1,81 @@
+@codebase
+
+Create a python api application that will connect to the marvel api and return the data in a json format.
+
+The api should have the following endpoints:
+- /character
+
+The api should only select one random character from the marvel api and return the data in a json format.
+
+The api should select the character based on the character offset and the limit should be 1. The offset should be a random number between 0 and the total number of characters.
+
+The api should return:
+1. the character name, the character description, the thumbnail image url.
+2. the character comics, the comic title, the comic description, the comic thumbnail image url.
+3. the character stories, the story title, the story description, the story thumbnail image url.
+4. the character events, the event title, the event description, the event thumbnail image url.
+5. the character series, the series title, the series description, the series thumbnail image url.
+
+Create the api using FastAPI.
+
+Create an python application that will run the api.
+
+*************************************
+
+add the character id to the returned json
+
+*************************************
+
+yes, add the favicon
+
+*************************************
+
+Also why does it seem to make so many calls to the marvel api? There should only be 2, one for the total character count and one for the the actual character.
+
+*************************************
+
+Here is a sample of the json returned from marvel api, it contains information for the related items, comic, story, event and series
+
+*************************************
+
+Can you save all of this composer to a text file?
+
+*************************************
+
+Could you suggest a better way to secure my Marvel API credentials ?
+
+*************************************
+
+yes please
+
+*************************************
+
+Please help with all steps. Also since this is still in development stage reusing the credentials is fine.
+
+*************************************
+
+Yes please, whatever you think is best for additional security features
+
+*************************************
+
+Now create api calls to get the related items comics, events, series and stories based on their ids. 
+
+*************************************
+
+Yes, please update the test script
+
+*************************************
+
+Now add the ability to save the id's of all characters that have been called in a text file. Use this file to prevent the same character being called more that once in a 6 month period.
+Also save the last json returned from the marvel api to a file on disk.
+Only make one call to the Marvel api every 24 hours if multiple calls are made to this api returned the saved json.
+
+*************************************
+
+Cursor AI crashed. Could you please repeat the last response starting with "You're Welcome!"
+
+*************************************
+
+Please implement these features.
+
+*************************************
