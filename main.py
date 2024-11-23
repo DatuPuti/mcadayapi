@@ -362,9 +362,7 @@ api_v1 = FastAPI(
 # Then define the routes
 @api_v1.get("/character", tags=["characters"])
 async def get_random_character():
-    """
-    Get a random Marvel character with their details.
-    """
+    """Get a random Marvel character with their details."""
     try:
         # Check if we should use cached response
         if not storage.should_make_new_call():
@@ -399,21 +397,35 @@ async def get_random_character():
                     raise HTTPException(status_code=response.status_code, 
                                      detail=f"Marvel API error: {response.text}")
                 
-                character_data = response.json()["data"]["results"][0]
-                character_id = character_data["id"]
+                character_data = response.json()
+                attribution_info = {
+                    "attributionText": character_data["attributionText"],
+                    "attributionHTML": character_data["attributionHTML"],
+                    "copyright": character_data["copyright"]
+                }
+                
+                character_result = character_data["data"]["results"][0]
+                character_id = character_result["id"]
                 
                 # Check if character was recently used
                 if not storage.is_character_recently_used(character_id):
-                    logger.info(f"Found unused character: {character_data['name']} (ID: {character_id})")
+                    logger.info(f"Found unused character: {character_result['name']} (ID: {character_id})")
                     
                     # Get detailed character information
                     character_info = await get_character_details(character_id)
                     
-                    # Save the character usage and response
-                    storage.save_character_usage(character_id)
-                    storage.save_last_response(character_info)
+                    # Add attribution information
+                    final_response = {
+                        **attribution_info,
+                        "data": character_info
+                    }
                     
-                    return character_info
+                    # Save the character usage, response, and related items
+                    storage.save_character_usage(character_id)
+                    storage.save_last_response(final_response)
+                    await storage.save_related_items(character_id, character_info)
+                    
+                    return final_response
                 
                 logger.info(f"Character {character_id} was recently used, trying another...")
                 attempts += 1
@@ -427,25 +439,72 @@ async def get_random_character():
         logger.error(f"Error in get_random_character: {str(e)}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_v1.get("/comics/{comic_id}", tags=["comics"])
-async def get_comic(comic_id: str):
-    """Get detailed information about a specific comic"""
-    return await get_comic_details(comic_id)
+@api_v1.get("/comics", tags=["related-items"])
+async def get_saved_comics():
+    """Get saved comics information for the last fetched character"""
+    try:
+        comics_file = os.path.join(storage.data_dir, "comics.json")
+        if os.path.exists(comics_file):
+            with open(comics_file, 'r') as f:
+                return json.load(f)
+        raise HTTPException(status_code=404, detail="No saved comics data found")
+    except Exception as e:
+        logger.error(f"Error reading saved comics: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@api_v1.get("/series/{series_id}", tags=["series"])
-async def get_series(series_id: str):
-    """Get detailed information about a specific series"""
-    return await get_series_details(series_id)
+@api_v1.get("/stories", tags=["related-items"])
+async def get_saved_stories():
+    """Get saved stories information for the last fetched character"""
+    try:
+        stories_file = os.path.join(storage.data_dir, "stories.json")
+        if os.path.exists(stories_file):
+            with open(stories_file, 'r') as f:
+                return json.load(f)
+        raise HTTPException(status_code=404, detail="No saved stories data found")
+    except Exception as e:
+        logger.error(f"Error reading saved stories: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@api_v1.get("/events/{event_id}", tags=["events"])
-async def get_event(event_id: str):
-    """Get detailed information about a specific event"""
-    return await get_event_details(event_id)
+@api_v1.get("/events", tags=["related-items"])
+async def get_saved_events():
+    """Get saved events information for the last fetched character"""
+    try:
+        events_file = os.path.join(storage.data_dir, "events.json")
+        if os.path.exists(events_file):
+            with open(events_file, 'r') as f:
+                return json.load(f)
+        raise HTTPException(status_code=404, detail="No saved events data found")
+    except Exception as e:
+        logger.error(f"Error reading saved events: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@api_v1.get("/stories/{story_id}", tags=["stories"])
-async def get_story(story_id: str):
-    """Get detailed information about a specific story"""
-    return await get_story_details(story_id)
+@api_v1.get("/series", tags=["related-items"])
+async def get_saved_series():
+    """Get saved series information for the last fetched character"""
+    try:
+        series_file = os.path.join(storage.data_dir, "series.json")
+        if os.path.exists(series_file):
+            with open(series_file, 'r') as f:
+                return json.load(f)
+        raise HTTPException(status_code=404, detail="No saved series data found")
+    except Exception as e:
+        logger.error(f"Error reading saved series: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_v1.get("/all", tags=["related-items"])
+async def get_all_saved_related():
+    """Get all saved related items for the last fetched character"""
+    try:
+        related_items = storage.get_related_items()
+        if related_items:
+            return {
+                "saved_at": datetime.now().isoformat(),
+                "data": related_items
+            }
+        raise HTTPException(status_code=404, detail="No saved related items found")
+    except Exception as e:
+        logger.error(f"Error reading saved related items: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e)) 
 
 # Finally, mount the v1 routes
 app.mount("/v1", api_v1)
@@ -664,3 +723,25 @@ async def schedule_cleanup():
             monitor.cleanup_old_data()
     
     asyncio.create_task(cleanup_task()) 
+
+# Add these new endpoints after the existing ones
+
+@api_v1.get("/comics/{comic_id}", tags=["comics"])
+async def get_comic(comic_id: str):
+    """Get detailed information about a specific comic"""
+    return await get_comic_details(comic_id)
+
+@api_v1.get("/series/{series_id}", tags=["series"])
+async def get_series(series_id: str):
+    """Get detailed information about a specific series"""
+    return await get_series_details(series_id)
+
+@api_v1.get("/events/{event_id}", tags=["events"])
+async def get_event(event_id: str):
+    """Get detailed information about a specific event"""
+    return await get_event_details(event_id)
+
+@api_v1.get("/stories/{story_id}", tags=["stories"])
+async def get_story(story_id: str):
+    """Get detailed information about a specific story"""
+    return await get_story_details(story_id) 

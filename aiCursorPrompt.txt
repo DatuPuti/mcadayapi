@@ -79,3 +79,20 @@ Cursor AI crashed. Could you please repeat the last response starting with "You'
 Please implement these features.
 
 *************************************
+
+Whenever a new character is fetched from the marvel api and saved also save the characters related itesm events ,stories ,series ,comics. 
+Related items will be saved in a json file similar to the way the character is saved. 
+There should be one json file for each related item.
+When a new character is fetched from the marvel api delete the previous characters related item files.
+
+*************************************
+
+Change the related items to only return the id, title ,description ,issueNumber.
+Also change so that all returned json contains the attributionText ,attributionHTML ,copyright
+
+*************************************
+
+Add the option to return the json file for the related items
+
+*************************************
+
