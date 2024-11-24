@@ -47,8 +47,8 @@ A script to test the API endpoint and display results in a formatted way.
 
 1. Create a virtual environment:
    ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\\Scripts\\activate
+   python3 -m venv /home/tborland/dev/mcadayApi/venv
+   source /home/tborland/dev/mcadayApi/venv/bin/activate  # On Windows: venv\\Scripts\\activate
    ```
 
 2. Install dependencies:

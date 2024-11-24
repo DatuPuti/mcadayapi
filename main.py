@@ -176,7 +176,11 @@ async def get_character_details(character_id: int) -> Dict[str, Any]:
             
             character_data = response.json()["data"]["results"][0]
             
-            # Prepare the response data using only the data we already have
+            # Extract ID from resourceURI helper function
+            def extract_id_from_uri(uri: str) -> str:
+                return uri.split('/')[-1]
+            
+            # Prepare the response data with IDs
             character_info = {
                 "id": character_data["id"],
                 "name": character_data["name"],
@@ -186,6 +190,7 @@ async def get_character_details(character_id: int) -> Dict[str, Any]:
                     "available": character_data["comics"]["available"],
                     "items": [
                         {
+                            "id": extract_id_from_uri(comic["resourceURI"]),
                             "title": comic["name"],
                             "resourceURI": comic["resourceURI"].replace('http://', 'https://')
                         }
@@ -196,6 +201,7 @@ async def get_character_details(character_id: int) -> Dict[str, Any]:
                     "available": character_data["stories"]["available"],
                     "items": [
                         {
+                            "id": extract_id_from_uri(story["resourceURI"]),
                             "title": story["name"],
                             "type": story["type"],
                             "resourceURI": story["resourceURI"].replace('http://', 'https://')
@@ -207,6 +213,7 @@ async def get_character_details(character_id: int) -> Dict[str, Any]:
                     "available": character_data["events"]["available"],
                     "items": [
                         {
+                            "id": extract_id_from_uri(event["resourceURI"]),
                             "title": event["name"],
                             "resourceURI": event["resourceURI"].replace('http://', 'https://')
                         }
@@ -217,6 +224,7 @@ async def get_character_details(character_id: int) -> Dict[str, Any]:
                     "available": character_data["series"]["available"],
                     "items": [
                         {
+                            "id": extract_id_from_uri(series["resourceURI"]),
                             "title": series["name"],
                             "resourceURI": series["resourceURI"].replace('http://', 'https://')
                         }
@@ -745,3 +753,6 @@ async def get_event(event_id: str):
 async def get_story(story_id: str):
     """Get detailed information about a specific story"""
     return await get_story_details(story_id) 
+
+# Update any hardcoded paths
+logger.info("INFO:     Will watch for changes in these directories: ['/home/tborland/dev/mcadayApi']") 
